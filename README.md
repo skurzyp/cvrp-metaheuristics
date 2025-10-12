@@ -31,7 +31,7 @@ go run ./cmd/cvrp/main.go \
   -tournament 4
 ```
 
-## CLI Params
+### CLI Params
 | Flag          | Type    | Default                | Description                                        |
 | ------------- | ------- | ---------------------- | -------------------------------------------------- |
 | `-file`       | string  | `./data/mock_data.txt` | Path to the VRP instance file                      |
@@ -40,3 +40,14 @@ go run ./cmd/cvrp/main.go \
 | `-elitism`    | int     | 2                      | Number of elite solutions retained each generation |
 | `-mutation`   | float64 | 0.05                   | Mutation rate (between 0 and 1)                    |
 | `-tournament` | int     | 3                      | Tournament size used for parent selection          |
+
+
+## TODO
+#### Major
+- [ ] implement genetics operators for GA
+- [ ] implement ant colony
+- [ ] implement benchmarks
+- [ ] conduct experiments and create charts
+
+#### Minor
+- [ ] rename mutation to Pm and add Px as `Probability of Crossing`
