@@ -13,11 +13,12 @@ import (
 func main() {
 	// Step 1: Define CLI flags
 	filePath := flag.String("file", "./data/mock_data.txt", "Path to the VRP instance file")
-	popSize := flag.Int("pop", 5, "Population size")
-	maxGen := flag.Int("gen", 10, "Maximum generations")
-	elitism := flag.Int("elitism", 2, "Number of elite solutions retained each generation")
-	mutation := flag.Float64("mutation", 0.05, "Mutation rate (0-1)")
-	tournament := flag.Int("tournament", 3, "Tournament size for parent selection")
+	popSize := flag.Int("pop", 100, "Population size")
+	maxGen := flag.Int("gen", 100, "Maximum generations")
+	elitism := flag.Int("elitism", 5, "Number of elite solutions retained each generation")
+	mutation := flag.Float64("mutation", 0.1, "Mutation rate (0-1)")
+	crossover := flag.Float64("crossover", 0.7, "Crossover rate (0-1)")
+	tournament := flag.Int("tournament", 5, "Tournament size for parent selection")
 
 	flag.Parse()
 
@@ -34,6 +35,7 @@ func main() {
 		ElitismCount:   *elitism,
 		MaxGenerations: *maxGen,
 		MutationRate:   float32(*mutation),
+		CrossoverRate:  float32(*crossover),
 		PopulationSize: *popSize,
 		TournamentSize: *tournament,
 	}
