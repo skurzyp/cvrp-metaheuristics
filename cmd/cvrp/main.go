@@ -32,6 +32,5 @@ func main() {
 	solution := ga.Run()
 
 	// Step 5: Print the solution and its cost
-	fmt.Println("Generated Route:", solution.Route.NodeIDs)
-	fmt.Println("Route Cost:", solution.Cost)
+	fmt.Printf(solution.String())
 }

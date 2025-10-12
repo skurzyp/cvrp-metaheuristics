@@ -15,7 +15,7 @@ type Genetic struct {
 }
 
 // Run executes the Genetic Algorithm and returns the best solution.
-func (g Genetic) Run() model.Solution {
+func (g Genetic) Run() model.FinalSolution {
 	// Step 1: Initialize population
 	population := g.initializePopulation()
 
@@ -25,7 +25,8 @@ func (g Genetic) Run() model.Solution {
 	}
 
 	// Return the best solution
-	return population[0]
+	routeCalculator := model.RouteCalculator{}
+	return model.FinalSolution{SubRoutes: routeCalculator.SplitIntoSubRoutes(g.Problem.Instance, population[0].Route), Cost: population[0].Cost, Route: population[0].Route}
 }
 
 // initializePopulation generates the initial population with one greedy solution and the rest random.
