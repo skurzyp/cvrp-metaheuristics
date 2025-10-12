@@ -35,11 +35,12 @@ go run ./cmd/cvrp/main.go \
 | Flag          | Type    | Default                | Description                                        |
 | ------------- | ------- | ---------------------- | -------------------------------------------------- |
 | `-file`       | string  | `./data/mock_data.txt` | Path to the VRP instance file                      |
-| `-pop`        | int     | 5                      | Population size for the Genetic Algorithm          |
-| `-gen`        | int     | 10                     | Maximum number of generations                      |
-| `-elitism`    | int     | 2                      | Number of elite solutions retained each generation |
-| `-mutation`   | float64 | 0.05                   | Mutation rate (between 0 and 1)                    |
-| `-tournament` | int     | 3                      | Tournament size used for parent selection          |
+| `-pop`        | int     | 100                      | Population size for the Genetic Algorithm          |
+| `-gen`        | int     | 100                     | Maximum number of generations                      |
+| `-elitism`    | int     | 5                      | Number of elite solutions retained each generation |
+| `-mutation`   | float64 | 0.1                   | Mutation rate (between 0 and 1)      
+| `-crossover`   | float64 | 0.7                   | Crossover rate (between 0 and 1)                  |
+| `-tournament` | int     | 5                      | Tournament size used for parent selection          |
 
 
 ## TODO

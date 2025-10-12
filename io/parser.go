@@ -29,8 +29,9 @@ func ParseInstance(filePath string) (model.Instance, error) {
 	var nodes []model.Node
 	var distanceMatrix [][]float32
 	var truckMaxLoad int
-	scanner := bufio.NewScanner(file)
+	var depotFileID int // Depot ID from file (1-based)
 
+	scanner := bufio.NewScanner(file)
 	currentSection := sectionNone
 
 	for scanner.Scan() {
@@ -52,8 +53,11 @@ func ParseInstance(filePath string) (model.Instance, error) {
 		case "DEMAND_SECTION":
 			currentSection = sectionDemand
 			continue
-		case "DEPOT_SECTION", "EOF":
+		case "DEPOT_SECTION":
 			currentSection = sectionDepot
+			continue
+		case "EOF":
+			currentSection = sectionNone
 			continue
 		case "CAPACITY":
 			truckMaxLoad, _ = strconv.Atoi(parts[len(parts)-1])
@@ -67,7 +71,7 @@ func ParseInstance(filePath string) (model.Instance, error) {
 			x, _ := strconv.Atoi(parts[1])
 			y, _ := strconv.Atoi(parts[2])
 			nodes = append(nodes, model.Node{
-				ID:       id - 1,
+				ID:       id - 1, // Temporary ID, will be reordered
 				Position: model.Position{X: x, Y: y},
 				Load:     0, // will be set later in DEMAND_SECTION
 			})
@@ -75,7 +79,28 @@ func ParseInstance(filePath string) (model.Instance, error) {
 			id, _ := strconv.Atoi(parts[0])
 			load, _ := strconv.Atoi(parts[1])
 			nodes[id-1].Load = load // NOTE: IDs in file are 1-based, slice is 0-based
+		case sectionDepot:
+			id, _ := strconv.Atoi(parts[0])
+			if id == -1 {
+				// End of depot section
+				continue
+			}
+			depotFileID = id // Store depot ID (1-based)
 		}
+	}
+
+	// Reorder nodes so depot is at index 0
+	if depotFileID > 0 {
+		depotIndex := depotFileID - 1 // Convert to 0-based
+		if depotIndex != 0 {
+			// Swap depot to position 0
+			nodes[0], nodes[depotIndex] = nodes[depotIndex], nodes[0]
+		}
+	}
+
+	// Reassign IDs to match array indices
+	for i := range nodes {
+		nodes[i].ID = i
 	}
 
 	// Build distance matrix

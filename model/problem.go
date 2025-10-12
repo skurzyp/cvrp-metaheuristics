@@ -5,6 +5,7 @@ type Problem struct {
 	ElitismCount   int
 	MaxGenerations int
 	MutationRate   float32
+	CrossoverRate  float32
 	PopulationSize int
 	TournamentSize int
 }

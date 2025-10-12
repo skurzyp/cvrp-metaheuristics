@@ -10,17 +10,22 @@ type Greedy struct {
 	instance model.Instance
 }
 
-func (g *Greedy) Execute() ([]model.Node, float32) {
+func (g *Greedy) Execute(startingNodeID int) ([]model.Node, float32) {
 	instance := g.instance
 	visited := make(map[int]bool)
 	var route []model.Node
 	var totalCost float32
 
-	// Start from the depot
-	currentNode := instance.NodesMatrix[instance.GetDepotID()]
+	// Mark depot as visited (we don't want to include it in the route)
+	depotID := instance.GetDepotID()
+	visited[depotID] = true
+
+	// Start from the specified node
+	currentNode := instance.NodesMatrix[startingNodeID]
 	visited[currentNode.ID] = true
 	route = append(route, currentNode)
 
+	// Continue visiting remaining nodes
 	for len(visited) < len(instance.NodesMatrix) {
 		nextNode := model.Node{}
 		minDistance := float32(math.MaxFloat32)
@@ -42,10 +47,6 @@ func (g *Greedy) Execute() ([]model.Node, float32) {
 		totalCost += minDistance
 		currentNode = nextNode
 	}
-
-	// Return to the depot
-	totalCost += instance.GetNodesDistance(currentNode, instance.NodesMatrix[instance.GetDepotID()])
-	route = append(route, instance.NodesMatrix[instance.GetDepotID()])
 
 	return route, totalCost
 }
