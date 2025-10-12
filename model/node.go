@@ -5,6 +5,7 @@ import "math"
 type Node struct {
 	ID       int
 	Position Position
+	Load     int
 }
 
 type Position struct {

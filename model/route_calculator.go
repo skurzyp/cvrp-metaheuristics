@@ -9,26 +9,27 @@ type RouteCalculator struct{}
 func (r RouteCalculator) CalculateWithGreedy(instance Instance, route Route) float32 {
 	totalCost := float32(0)
 	currentLoad := 0
-	currentNode := instance.NodesMatrix[instance.GetDepotID()]
+	depot := instance.NodesMatrix[instance.GetDepotID()]
+	currentNode := depot
 
 	for _, nodeID := range route.NodeIDs {
 		nextNode := instance.NodesMatrix[nodeID]
-		distance := instance.GetNodesDistance(currentNode, nextNode)
 
-		// Check if the truck is overloaded
-		if currentLoad+1 > instance.TruckMaxLoad {
-			// Return to the depot
-			totalCost += instance.GetNodesDistance(currentNode, instance.NodesMatrix[instance.GetDepotID()])
+		// Check if adding the next node's load would exceed truck capacity
+		if currentLoad+nextNode.Load > instance.TruckMaxLoad {
+			// Return to depot first
+			totalCost += instance.GetNodesDistance(currentNode, depot)
+			currentNode = depot
 			currentLoad = 0
 		}
 
-		// Visit the next node
-		totalCost += distance
+		// Go to next node
+		totalCost += instance.GetNodesDistance(currentNode, nextNode)
 		currentNode = nextNode
-		currentLoad++
+		currentLoad += nextNode.Load
 	}
 
-	// Return to the depot at the end
-	totalCost += instance.GetNodesDistance(currentNode, instance.NodesMatrix[instance.GetDepotID()])
+	// Return to depot at the end
+	totalCost += instance.GetNodesDistance(currentNode, depot)
 	return totalCost
 }
