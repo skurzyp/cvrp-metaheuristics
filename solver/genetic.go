@@ -104,9 +104,8 @@ func (g Genetic) generateRandomRoute() model.Route {
 
 // selectParent selects a parent using tournament selection.
 func (g Genetic) selectParent(population []model.Solution) model.Solution {
-	tournamentSize := 3 // TODO: Make this a parameter
 	best := population[rand.Intn(len(population))]
-	for i := 1; i < tournamentSize; i++ {
+	for i := 1; i < g.Problem.TournamentSize; i++ {
 		competitor := population[rand.Intn(len(population))]
 		if competitor.Cost < best.Cost {
 			best = competitor

@@ -6,4 +6,5 @@ type Problem struct {
 	MaxGenerations int
 	MutationRate   float32
 	PopulationSize int
+	TournamentSize int
 }
