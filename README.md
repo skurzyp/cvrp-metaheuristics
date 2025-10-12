@@ -15,7 +15,28 @@ cd cvrp-metaheuristics
 go mod tidy
 ```
 
-3. Run the solver (currently the algorithm's config is hardcoded)
+4. Run the solver with default parameters
 ```
 go run ./cmd/cvrp/main.go
 ```
+
+5. Run the solver with custom CLI parameters
+```
+go run ./cmd/cvrp/main.go \
+  -file ./data/toy.vrp \
+  -pop 10 \
+  -gen 50 \
+  -elitism 3 \
+  -mutation 0.1 \
+  -tournament 4
+```
+
+## CLI Params
+| Flag          | Type    | Default                | Description                                        |
+| ------------- | ------- | ---------------------- | -------------------------------------------------- |
+| `-file`       | string  | `./data/mock_data.txt` | Path to the VRP instance file                      |
+| `-pop`        | int     | 5                      | Population size for the Genetic Algorithm          |
+| `-gen`        | int     | 10                     | Maximum number of generations                      |
+| `-elitism`    | int     | 2                      | Number of elite solutions retained each generation |
+| `-mutation`   | float64 | 0.05                   | Mutation rate (between 0 and 1)                    |
+| `-tournament` | int     | 3                      | Tournament size used for parent selection          |
