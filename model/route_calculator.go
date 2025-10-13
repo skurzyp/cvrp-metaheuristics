@@ -1,7 +1,5 @@
 package model
 
-import "fmt"
-
 type RouteCalculator struct{}
 
 // SplitIntoSubRoutes splits a route into sub-routes based on truck capacity.
@@ -36,8 +34,6 @@ func (r RouteCalculator) SplitIntoSubRoutes(instance Instance, route Route) []Ro
 }
 
 func (r RouteCalculator) CalculateCost(instance Instance, route Route) float32 {
-	fmt.Println("[ROUTE CALCULATOR] Calculating cost for route:", route)
-	fmt.Println("rout length:", len(route.NodeIDs))
 	if len(route.NodeIDs) == 0 {
 		return 0
 	}

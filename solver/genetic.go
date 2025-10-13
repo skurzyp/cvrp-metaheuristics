@@ -2,7 +2,6 @@
 package solver
 
 import (
-	"fmt"
 	"math/rand"
 	"sort"
 	"time"
@@ -44,7 +43,6 @@ func (g Genetic) initializePopulation() []model.Solution {
 	greedySolver := Greedy{Instance: g.Problem.Instance}
 	startNode := rand.Intn(len(g.Problem.Instance.NodesMatrix)-1) + 1 // Random node from 1 to n-1
 	greedySolution := greedySolver.Run(startNode)
-	fmt.Println("[INITIAL POPULATION] Greedy solution route:", greedySolution.Route)
 
 	population[0] = model.Solution{
 		Route: greedySolution.Route,
@@ -130,7 +128,6 @@ func (g Genetic) selectParent(population []model.Solution) model.Solution {
 
 // mutate performs swap mutation on a route.
 func (g Genetic) mutate(route model.Route) model.Route {
-	fmt.Println("[MUTATE] Before mutation:", route)
 	size := len(route.NodeIDs)
 	if size < 2 {
 		return route
@@ -138,14 +135,11 @@ func (g Genetic) mutate(route model.Route) model.Route {
 	i := rand.Intn(size)
 	j := rand.Intn(size)
 	route.NodeIDs[i], route.NodeIDs[j] = route.NodeIDs[j], route.NodeIDs[i]
-	fmt.Println("[MUTATE] After mutation:", route)
 	return route
 }
 
 // crossoverOX performs the Order Crossover (OX) between two parent routes.
 func (g Genetic) crossoverOX(parent1, parent2 model.Route) model.Route {
-	fmt.Println("[CROSSOVER] Parent 1:", parent1)
-	fmt.Println("[CROSSOVER] Parent 2:", parent2)
 	size := len(parent1.NodeIDs)
 
 	if size <= 1 {
@@ -186,7 +180,6 @@ func (g Genetic) crossoverOX(parent1, parent2 model.Route) model.Route {
 			childIndex = (childIndex + 1) % size
 		}
 	}
-	fmt.Println("[CROSSOVER] Child:", child)
 
 	return model.Route{NodeIDs: child}
 }
