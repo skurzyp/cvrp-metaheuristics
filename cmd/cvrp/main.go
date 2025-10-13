@@ -13,14 +13,20 @@ import (
 func main() {
 	// Step 1: Define CLI flags
 	filePath := flag.String("file", "./data/mock_data.txt", "Path to the VRP instance file")
-	popSize := flag.Int("pop", 100, "Population size")
-	maxGen := flag.Int("gen", 100, "Maximum generations")
-	elitism := flag.Int("elitism", 5, "Number of elite solutions retained each generation")
-	mutation := flag.Float64("mutation", 0.1, "Mutation rate (0-1)")
-	crossover := flag.Float64("crossover", 0.7, "Crossover rate (0-1)")
-	tournament := flag.Int("tournament", 5, "Tournament size for parent selection")
-	algorithm := flag.String("algorithm", "ga", "Algotihm to use: 'ga' for Genetic Algorithm (default), 'sa' for Simulated Annealing (not implemented), greedy for Greedy Algorithm")
+	popSize := flag.Int("pop", 100, "Population size (GA only)")
+	maxGen := flag.Int("gen", 100, "Maximum generations (GA only)")
+	elitism := flag.Int("elitism", 5, "Number of elite solutions retained each generation (GA only)")
+	mutation := flag.Float64("mutation", 0.1, "Mutation rate (0-1, GA only)")
+	crossover := flag.Float64("crossover", 0.7, "Crossover rate (0-1, GA only)")
+	tournament := flag.Int("tournament", 5, "Tournament size for parent selection (GA only)")
+	algorithm := flag.String("algorithm", "ga", "Algorithm to use: 'ga' for Genetic Algorithm, 'sa' for Simulated Annealing, 'greedy' for Greedy Algorithm")
 	starting := flag.Int("start", 1, "Starting node ID for Greedy Algorithm (default 1)")
+
+	// Simulated Annealing parameters
+	initialTemp := flag.Float64("temp", 1000.0, "Initial temperature (SA only)")
+	minTemp := flag.Float64("minTemp", 0.001, "Minimum temperature (SA only)")
+	coolingRate := flag.Float64("cooling", 0.995, "Cooling rate (0-1, SA only)")
+	innerLoop := flag.Int("innerLoop", 100, "Iterations per temperature step (SA only)")
 
 	flag.Parse()
 
@@ -50,7 +56,26 @@ func main() {
 
 		// Step 5: Print solution
 		fmt.Println(solution.String())
+
+	case "sa":
+		// Step 3: Define SA problem
+		problem := model.Problem{
+			Instance:           instance,
+			InitialTemperature: *initialTemp,
+			MinimumTemperature: *minTemp,
+			CoolingRate:        *coolingRate,
+			InnerLoop:          *innerLoop,
+		}
+
+		// Step 4: Run Simulated Annealing
+		sa := solver.SimulatedAnnealing{Problem: problem}
+		solution := sa.Run()
+
+		// Step 5: Print solution
+		fmt.Println(solution.String())
+
 	case "greedy":
+		// Step 3: Run Greedy algorithm
 		greedy := solver.Greedy{Instance: instance}
 		if *starting < 1 || *starting >= len(instance.NodesMatrix) {
 			fmt.Printf("Starting node ID must be between 1 and %d\n", len(instance.NodesMatrix)-1)
@@ -58,6 +83,9 @@ func main() {
 		}
 		solution := greedy.Run(*starting)
 		fmt.Println(solution.String())
-	}
 
+	default:
+		fmt.Println("Unknown algorithm. Use -algorithm=ga, -algorithm=sa, or -algorithm=greedy")
+		os.Exit(1)
+	}
 }
