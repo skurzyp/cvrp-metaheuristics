@@ -2,6 +2,7 @@
 package model
 
 type Instance struct {
+	Name           string
 	NodesMatrix    []Node
 	DistanceMatrix [][]float32
 	TruckMaxLoad   int

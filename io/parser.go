@@ -114,6 +114,7 @@ func ParseInstance(filePath string) (model.Instance, error) {
 	}
 
 	return model.Instance{
+		Name:           strings.Split(filePath, "/")[len(strings.Split(filePath, "/"))-1],
 		NodesMatrix:    nodes,
 		DistanceMatrix: distanceMatrix,
 		TruckMaxLoad:   truckMaxLoad,

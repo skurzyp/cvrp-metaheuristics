@@ -1,5 +1,5 @@
-// Package solver implements algorithms solving the TSP/VRP problem using Genetic Algorithm
-package solver
+// Package algorithms implements algorithms solving the TSP/VRP problem using Genetic Algorithm
+package algorithms
 
 import (
 	"math/rand"

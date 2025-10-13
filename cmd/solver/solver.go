@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"os"
 
+	"pwr.lab0/algorithms"
 	"pwr.lab0/io"
 	"pwr.lab0/model"
-	"pwr.lab0/solver"
 )
 
 func main() {
@@ -51,7 +51,7 @@ func main() {
 		}
 
 		// Step 4: Run GA
-		ga := solver.Genetic{Problem: problem}
+		ga := algorithms.Genetic{Problem: problem}
 		solution := ga.Run()
 
 		// Step 5: Print solution
@@ -68,7 +68,7 @@ func main() {
 		}
 
 		// Step 4: Run Simulated Annealing
-		sa := solver.SimulatedAnnealing{Problem: problem}
+		sa := algorithms.SimulatedAnnealing{Problem: problem}
 		solution := sa.Run()
 
 		// Step 5: Print solution
@@ -76,7 +76,7 @@ func main() {
 
 	case "greedy":
 		// Step 3: Run Greedy algorithm
-		greedy := solver.Greedy{Instance: instance}
+		greedy := algorithms.Greedy{Instance: instance}
 		if *starting < 1 || *starting >= len(instance.NodesMatrix) {
 			fmt.Printf("Starting node ID must be between 1 and %d\n", len(instance.NodesMatrix)-1)
 			os.Exit(1)
