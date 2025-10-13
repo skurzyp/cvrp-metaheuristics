@@ -20,7 +20,7 @@ func main() {
 	crossover := flag.Float64("crossover", 0.7, "Crossover rate (0-1, GA only)")
 	tournament := flag.Int("tournament", 5, "Tournament size for parent selection (GA only)")
 	algorithm := flag.String("algorithm", "ga", "Algorithm to use: 'ga' for Genetic Algorithm, 'sa' for Simulated Annealing, 'greedy' for Greedy Algorithm")
-	starting := flag.Int("start", 1, "Starting node ID for Greedy Algorithm (default 1)")
+	starting := flag.Int("start", 0, "Starting node ID for Greedy Algorithm (default 0 - depot)")
 
 	// Simulated Annealing parameters
 	initialTemp := flag.Float64("temp", 1000.0, "Initial temperature (SA only)")
@@ -77,8 +77,8 @@ func main() {
 	case "greedy":
 		// Step 3: Run Greedy algorithm
 		greedy := algorithms.Greedy{Instance: instance}
-		if *starting < 1 || *starting >= len(instance.NodesMatrix) {
-			fmt.Printf("Starting node ID must be between 1 and %d\n", len(instance.NodesMatrix)-1)
+		if *starting < 0 || *starting >= len(instance.NodesMatrix) {
+			fmt.Printf("Starting node ID must be between 0 and %d\n", len(instance.NodesMatrix)-1)
 			os.Exit(1)
 		}
 		solution := greedy.Run(*starting)
