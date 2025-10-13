@@ -25,13 +25,12 @@ type ResultSummary struct {
 	Avg   float64
 	Std   float64
 
-	Config map[string]any // e.g. pop_size, gen, Px, Pm, Tour, etc.
+	Config map[string]any
 }
 
-// RunExperiment executes a given algorithm multiple times (possibly expensive ones like GA/SA)
+// RunExperiment executes a given algorithm multiple times (e.g. GA, SA)
 // concurrently and computes aggregated statistics.
 func RunExperiment(problem model.Problem, algorithm string, runs int) ResultSummary {
-
 	results := make([]float64, runs)
 	var wg sync.WaitGroup
 	var mu sync.Mutex // protects writes to results[]
@@ -40,13 +39,12 @@ func RunExperiment(problem model.Problem, algorithm string, runs int) ResultSumm
 	for i := 0; i < runs; i++ {
 		go func(i int) {
 			defer wg.Done()
-
 			rand.Seed(time.Now().UnixNano())
 
 			var cost float64
 			switch algorithm {
 			case "ga":
-				problemCopy := problem // defensive copy
+				problemCopy := problem // defensive copy for concurrent safety
 				ga := algorithms.Genetic{Problem: problemCopy}
 				sol := ga.Run()
 				cost = float64(sol.Cost)
@@ -69,7 +67,7 @@ func RunExperiment(problem model.Problem, algorithm string, runs int) ResultSumm
 				cost = float64(calculator.CalculateCost(problem.Instance, route))
 			}
 
-			// Write result safely
+			// Thread-safe write
 			mu.Lock()
 			results[i] = cost
 			mu.Unlock()
@@ -88,18 +86,19 @@ func RunExperiment(problem model.Problem, algorithm string, runs int) ResultSumm
 		Avg:          avg,
 		Std:          std,
 		Config: map[string]any{
-			"pop_size":  problem.PopulationSize,
-			"gen":       problem.MaxGenerations,
-			"Px":        problem.CrossoverRate,
-			"Pm":        problem.MutationRate,
-			"Tour":      problem.TournamentSize,
-			"cooling":   problem.CoolingRate,
-			"innerLoop": problem.InnerLoop,
+			"pop_size":   problem.PopulationSize,
+			"gen":        problem.MaxGenerations,
+			"Px":         problem.CrossoverRate,
+			"Pm":         problem.MutationRate,
+			"Tournament": problem.TournamentSize,
+			"Elitism":    problem.ElitismCount,
+			"cooling":    problem.CoolingRate,
+			"innerLoop":  problem.InnerLoop,
 		},
 	}
 }
 
-// summarize computes min, max, mean, std deviation.
+// summarize computes min, max, mean, and standard deviation.
 func summarize(values []float64) (best, worst, avg, std float64) {
 	if len(values) == 0 {
 		return 0, 0, 0, 0
@@ -116,6 +115,7 @@ func summarize(values []float64) (best, worst, avg, std float64) {
 		}
 	}
 	avg = sum / float64(len(values))
+
 	var variance float64
 	for _, v := range values {
 		variance += (v - avg) * (v - avg)
@@ -124,7 +124,7 @@ func summarize(values []float64) (best, worst, avg, std float64) {
 	return
 }
 
-// SaveResults writes multiple summaries to CSV using your io.Writer.
+// SaveResults writes multiple summaries to a CSV file using the custom io.Writer.
 func SaveResults(filePath string, summaries []ResultSummary) error {
 	writer := io.NewCSVWriter(filePath)
 	defer writer.Close()
@@ -132,9 +132,10 @@ func SaveResults(filePath string, summaries []ResultSummary) error {
 	// Header
 	writer.Write([]string{
 		"Instance", "Algorithm", "Runs", "Best", "Worst", "Avg", "Std",
-		"pop_size", "gen", "Px", "Pm", "Tour", "cooling", "innerLoop",
+		"pop_size", "gen", "Px", "Pm", "tournament", "Elitism", "cooling", "innerLoop",
 	})
 
+	// Each experiment summary
 	for _, s := range summaries {
 		writer.Write([]string{
 			s.InstanceName,
@@ -148,7 +149,8 @@ func SaveResults(filePath string, summaries []ResultSummary) error {
 			fmt.Sprintf("%v", s.Config["gen"]),
 			fmt.Sprintf("%v", s.Config["Px"]),
 			fmt.Sprintf("%v", s.Config["Pm"]),
-			fmt.Sprintf("%v", s.Config["Tour"]),
+			fmt.Sprintf("%v", s.Config["Tournament"]),
+			fmt.Sprintf("%v", s.Config["Elitism"]),
 			fmt.Sprintf("%v", s.Config["cooling"]),
 			fmt.Sprintf("%v", s.Config["innerLoop"]),
 		})

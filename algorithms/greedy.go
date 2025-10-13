@@ -11,68 +11,90 @@ type Greedy struct {
 }
 
 // Run executes the Greedy Algorithm and returns the best CVRP solution.
-// It starts from a specified node and greedily visits nearest unvisited nodes,
-// returning to depot when capacity is exceeded.
+// If startingNodeID is 0 (depot), start from depot. Otherwise, start from the given customer.
 func (g *Greedy) Run(startingNodeID int) model.FinalSolution {
 	instance := g.Instance
 	visited := make(map[int]bool)
-	var route []int // Only customer node IDs
+	var route []int // full route including all nodes in order of visit
 	var subRoutes []model.Route
 
-	depot := instance.NodesMatrix[instance.GetDepotID()]
-	visited[depot.ID] = true
+	depotID := instance.GetDepotID()
+	depot := instance.NodesMatrix[depotID]
 
-	currentNode := instance.NodesMatrix[startingNodeID]
-	currentLoad := currentNode.Load
-	currentSubRoute := []int{currentNode.ID}
-	visited[currentNode.ID] = true
-	route = append(route, currentNode.ID)
+	// Mark depot visited only if we start from depot
+	if startingNodeID == depotID {
+		visited[depot.ID] = true
+		currentNode := depot
+		currentLoad := 0
+		currentSubRoute := []int{}
 
-	for len(visited) < len(instance.NodesMatrix) {
-		nextNode := model.Node{}
-		minDistance := float32(math.MaxFloat32)
-		found := false
+		for len(visited) < len(instance.NodesMatrix) {
+			nextNode, found := g.findNearestUnvisited(currentNode, visited)
+			if !found {
+				break
+			}
 
-		// Find the nearest unvisited node
-		for _, node := range instance.NodesMatrix {
-			if !visited[node.ID] {
-				distance := instance.GetNodesDistance(currentNode, node)
-				if distance < minDistance {
-					minDistance = distance
-					nextNode = node
-					found = true
+			// Check capacity
+			if currentLoad+nextNode.Load <= instance.TruckMaxLoad {
+				currentSubRoute = append(currentSubRoute, nextNode.ID)
+				currentLoad += nextNode.Load
+				visited[nextNode.ID] = true
+				route = append(route, nextNode.ID)
+				currentNode = nextNode
+			} else {
+				// Capacity exceeded, finish sub-route by returning to depot
+				if len(currentSubRoute) > 0 {
+					subRoutes = append(subRoutes, model.Route{NodeIDs: currentSubRoute})
 				}
+				currentSubRoute = []int{nextNode.ID}
+				currentLoad = nextNode.Load
+				visited[nextNode.ID] = true
+				route = append(route, nextNode.ID)
+				currentNode = nextNode
 			}
 		}
 
-		if !found {
-			break
-		}
-
-		// Check if we can add this node to current sub-route
-		if currentLoad+nextNode.Load <= instance.TruckMaxLoad {
-			// Add to current sub-route
-			currentSubRoute = append(currentSubRoute, nextNode.ID)
-			currentLoad += nextNode.Load
-			visited[nextNode.ID] = true
-			route = append(route, nextNode.ID)
-			currentNode = nextNode
-		} else {
-			// Capacity exceeded - finish current sub-route and start new one
+		if len(currentSubRoute) > 0 {
 			subRoutes = append(subRoutes, model.Route{NodeIDs: currentSubRoute})
-
-			// Start new sub-route from depot to nextNode
-			currentSubRoute = []int{nextNode.ID}
-			currentLoad = nextNode.Load
-			visited[nextNode.ID] = true
-			route = append(route, nextNode.ID)
-			currentNode = nextNode
 		}
-	}
 
-	// Add the last sub-route
-	if len(currentSubRoute) > 0 {
-		subRoutes = append(subRoutes, model.Route{NodeIDs: currentSubRoute})
+	} else {
+		// Start from customer node (not depot)
+		currentNode := instance.NodesMatrix[startingNodeID]
+		currentLoad := currentNode.Load
+		currentSubRoute := []int{currentNode.ID}
+		visited[currentNode.ID] = true
+		visited[depot.ID] = true
+		route = append(route, currentNode.ID)
+
+		for len(visited) < len(instance.NodesMatrix) {
+			nextNode, found := g.findNearestUnvisited(currentNode, visited)
+			if !found {
+				break
+			}
+
+			if currentLoad+nextNode.Load <= instance.TruckMaxLoad {
+				currentSubRoute = append(currentSubRoute, nextNode.ID)
+				currentLoad += nextNode.Load
+				visited[nextNode.ID] = true
+				route = append(route, nextNode.ID)
+				currentNode = nextNode
+			} else {
+				// Capacity exceeded, finish sub-route by returning to depot
+				if len(currentSubRoute) > 0 {
+					subRoutes = append(subRoutes, model.Route{NodeIDs: currentSubRoute})
+				}
+				currentSubRoute = []int{nextNode.ID}
+				currentLoad = nextNode.Load
+				visited[nextNode.ID] = true
+				route = append(route, nextNode.ID)
+				currentNode = nextNode
+			}
+		}
+
+		if len(currentSubRoute) > 0 {
+			subRoutes = append(subRoutes, model.Route{NodeIDs: currentSubRoute})
+		}
 	}
 
 	// Calculate total cost
@@ -85,4 +107,24 @@ func (g *Greedy) Run(startingNodeID int) model.FinalSolution {
 		Cost:      cost,
 		Route:     fullRoute,
 	}
+}
+
+// findNearestUnvisited returns the nearest unvisited node and a boolean flag.
+func (g *Greedy) findNearestUnvisited(current model.Node, visited map[int]bool) (model.Node, bool) {
+	minDistance := float32(math.MaxFloat32)
+	var nearest model.Node
+	found := false
+
+	for _, node := range g.Instance.NodesMatrix {
+		if !visited[node.ID] {
+			distance := g.Instance.GetNodesDistance(current, node)
+			if distance < minDistance {
+				minDistance = distance
+				nearest = node
+				found = true
+			}
+		}
+	}
+
+	return nearest, found
 }

@@ -46,8 +46,11 @@ func (r RouteCalculator) CalculateCost(instance Instance, route Route) float32 {
 	currentNode := instance.NodesMatrix[route.NodeIDs[0]]
 	currentLoad = currentNode.Load
 
+	// Add cost from depot to first node
+	totalCost += instance.GetNodesDistance(depot, currentNode)
+
 	// Visit remaining nodes in order
-	for i := 1; i < len(route.NodeIDs)-1; i++ {
+	for i := 1; i < len(route.NodeIDs); i++ {
 		nextNode := instance.NodesMatrix[route.NodeIDs[i]]
 
 		// Check if we need to return to depot due to capacity
@@ -63,6 +66,7 @@ func (r RouteCalculator) CalculateCost(instance Instance, route Route) float32 {
 		currentNode = nextNode
 	}
 
-	// Route ends at route[n-1], no return to depot
+	// Always return to depot at the end
+	totalCost += instance.GetNodesDistance(currentNode, depot)
 	return totalCost
 }

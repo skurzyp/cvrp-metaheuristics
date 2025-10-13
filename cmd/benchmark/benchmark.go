@@ -26,17 +26,17 @@ func main() {
 
 	problem := model.Problem{
 		Instance:       instance,
-		PopulationSize: 400,
-		MaxGenerations: 50000,
-		MutationRate:   0.15,
-		CrossoverRate:  0.8,
+		PopulationSize: 200,
+		MaxGenerations: 5000,
+		MutationRate:   0.05,
+		CrossoverRate:  0.90,
 		TournamentSize: 10,
 		ElitismCount:   10,
 
 		InitialTemperature: 1000,
 		MinimumTemperature: 0.001,
-		CoolingRate:        0.9999,
-		InnerLoop:          500,
+		CoolingRate:        0.9995,
+		InnerLoop:          400,
 	}
 
 	fmt.Println("🔍 Running benchmark suite (concurrent)...")
