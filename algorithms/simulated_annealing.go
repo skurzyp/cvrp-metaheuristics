@@ -1,10 +1,12 @@
 package algorithms
 
 import (
+	"fmt"
 	"math"
 	"math/rand"
 	"time"
 
+	"pwr.lab0/io"
 	"pwr.lab0/model"
 )
 
@@ -33,8 +35,42 @@ func (sa SimulatedAnnealing) Run() model.FinalSolution {
 	minT := sa.Problem.MinimumTemperature     // e.g. 0.001
 	iterationsPerTemp := sa.Problem.InnerLoop // e.g. 100
 
+	// Generate log file path
+	logPath := "results/sa_progress_" +
+		sa.Problem.Instance.Name +
+		"_T" + fmt.Sprintf("%.2f", T) +
+		"_alpha" + fmt.Sprintf("%.3f", alpha) +
+		"_minT" + fmt.Sprintf("%.3f", minT) +
+		"_inner%d.csv"
+	logPath = fmt.Sprintf(logPath, iterationsPerTemp)
+
+	// Log initial state
+	log := io.GenerationLog{
+		Instance:   sa.Problem.Instance.Name,
+		Algorithm:  "sa",
+		Run:        1, // This should be passed as parameter if needed
+		Best:       bestCost,
+		Worst:      currentCost,
+		Avg:        currentCost,
+		Std:        0,
+		PopSize:    0,
+		Generation: 0,
+		Px:         0,
+		Pm:         0,
+		Tournament: 0,
+		Elitism:    0,
+		Cooling:    float32(alpha),
+		InnerLoop:  iterationsPerTemp,
+	}
+	io.LogGeneration(log, logPath)
+
+	generation := 1
 	// Step 3: Annealing loop
 	for T > minT {
+		worstCost := currentCost
+		avgCost := currentCost
+		std := float32(0)
+
 		for range iterationsPerTemp {
 			// Generate neighbor solution (e.g. 2-swap)
 			newRoute := sa.perturb(currentRoute)
@@ -47,12 +83,26 @@ func (sa SimulatedAnnealing) Run() model.FinalSolution {
 				currentCost = newCost
 			}
 
-			// Track global best
+			// Track global best and statistics
 			if currentCost < bestCost {
 				bestRoute = currentRoute
 				bestCost = currentCost
 			}
+			if currentCost > worstCost {
+				worstCost = currentCost
+			}
+			avgCost = (avgCost + currentCost) / 2
 		}
+
+		// Log current temperature iteration
+		log.Generation = generation
+		log.Best = bestCost
+		log.Worst = worstCost
+		log.Avg = avgCost
+		log.Std = std
+		io.LogGeneration(log, logPath)
+
+		generation++
 		T *= alpha // Cool down
 	}
 
