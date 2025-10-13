@@ -1,8 +1,11 @@
 package model
 
+import "fmt"
+
 type RouteCalculator struct{}
 
 // SplitIntoSubRoutes splits a route into sub-routes based on truck capacity.
+// This follows the greedy approach: visit nodes in order, return to depot when capacity exceeded.
 func (r RouteCalculator) SplitIntoSubRoutes(instance Instance, route Route) []Route {
 	var subRoutes []Route
 	var currentSubRoute []int
@@ -32,28 +35,38 @@ func (r RouteCalculator) SplitIntoSubRoutes(instance Instance, route Route) []Ro
 	return subRoutes
 }
 
-// CalculateWithGreedy evaluates the cost of a route.
-func (r RouteCalculator) CalculateWithGreedy(instance Instance, route Route) float32 {
-	totalCost := float32(0)
-	subRoutes := r.SplitIntoSubRoutes(instance, route)
-	depot := instance.NodesMatrix[instance.GetDepotID()]
-
-	for _, sub := range subRoutes {
-		// Start from depot to first node
-		firstNode := instance.NodesMatrix[sub.NodeIDs[0]]
-		totalCost += instance.GetNodesDistance(depot, firstNode)
-
-		// Travel between nodes in the sub-route
-		for i := 0; i < len(sub.NodeIDs)-1; i++ {
-			currentNode := instance.NodesMatrix[sub.NodeIDs[i]]
-			nextNode := instance.NodesMatrix[sub.NodeIDs[i+1]]
-			totalCost += instance.GetNodesDistance(currentNode, nextNode)
-		}
-
-		// Return from last node to depot
-		lastNode := instance.NodesMatrix[sub.NodeIDs[len(sub.NodeIDs)-1]]
-		totalCost += instance.GetNodesDistance(lastNode, depot)
+func (r RouteCalculator) CalculateCost(instance Instance, route Route) float32 {
+	fmt.Println("[ROUTE CALCULATOR] Calculating cost for route:", route)
+	fmt.Println("rout length:", len(route.NodeIDs))
+	if len(route.NodeIDs) == 0 {
+		return 0
 	}
 
+	totalCost := float32(0)
+	depot := instance.NodesMatrix[instance.GetDepotID()]
+	currentLoad := 0
+
+	// Start from first node
+	currentNode := instance.NodesMatrix[route.NodeIDs[0]]
+	currentLoad = currentNode.Load
+
+	// Visit remaining nodes in order
+	for i := 1; i < len(route.NodeIDs)-1; i++ {
+		nextNode := instance.NodesMatrix[route.NodeIDs[i]]
+
+		// Check if we need to return to depot due to capacity
+		if currentLoad+nextNode.Load > instance.TruckMaxLoad {
+			totalCost += instance.GetNodesDistance(currentNode, depot)
+			totalCost += instance.GetNodesDistance(depot, nextNode)
+			currentLoad = nextNode.Load
+		} else {
+			totalCost += instance.GetNodesDistance(currentNode, nextNode)
+			currentLoad += nextNode.Load
+		}
+
+		currentNode = nextNode
+	}
+
+	// Route ends at route[n-1], no return to depot
 	return totalCost
 }

@@ -14,16 +14,23 @@ type FinalSolution struct {
 func (fs FinalSolution) String() string {
 	var sb strings.Builder
 
+	// Print the full route
+	sb.WriteString("Full Route: ")
+	for i, nodeID := range fs.Route.NodeIDs {
+		if i > 0 {
+			sb.WriteString(" -> ")
+		}
+		sb.WriteString(fmt.Sprint(nodeID))
+	}
+	sb.WriteString("\n\n")
+
 	// Print each sub-route
+	sb.WriteString("Sub-routes:\n")
 	for i, sub := range fs.SubRoutes {
 		sb.WriteString(fmt.Sprintf("Route #%d: ", i+1))
 		for j, nodeID := range sub.NodeIDs {
-			// Skip the depot if included at start or end
-			if nodeID == 0 {
-				continue
-			}
 			if j > 0 {
-				sb.WriteString(" ")
+				sb.WriteString(" -> ")
 			}
 			sb.WriteString(fmt.Sprint(nodeID))
 		}
@@ -31,7 +38,7 @@ func (fs FinalSolution) String() string {
 	}
 
 	// Print total cost
-	sb.WriteString(fmt.Sprintf("Cost: %.2f\n", fs.Cost))
+	sb.WriteString(fmt.Sprintf("\nTotal Cost: %.2f\n", fs.Cost))
 
 	return sb.String()
 }

@@ -2,6 +2,7 @@
 package solver
 
 import (
+	"fmt"
 	"math/rand"
 	"sort"
 	"time"
@@ -13,7 +14,7 @@ type Genetic struct {
 	Problem model.Problem
 }
 
-// Run executes the Genetic Algorithm and returns the best solution.
+// Run executes the Genetic Algorithm and returns the best CVRP solution.
 func (g Genetic) Run() model.FinalSolution {
 	// Step 1: Initialize population
 	population := g.initializePopulation()
@@ -25,10 +26,12 @@ func (g Genetic) Run() model.FinalSolution {
 
 	// Return the best solution
 	routeCalculator := model.RouteCalculator{}
+	bestRoute := population[0].Route
+
 	return model.FinalSolution{
-		SubRoutes: routeCalculator.SplitIntoSubRoutes(g.Problem.Instance, population[0].Route),
+		SubRoutes: routeCalculator.SplitIntoSubRoutes(g.Problem.Instance, bestRoute),
 		Cost:      population[0].Cost,
-		Route:     population[0].Route,
+		Route:     bestRoute,
 	}
 }
 
@@ -38,16 +41,14 @@ func (g Genetic) initializePopulation() []model.Solution {
 	population := make([]model.Solution, g.Problem.PopulationSize)
 
 	// Add one greedy solution (starting from a random non-depot node)
-	greedySolver := Greedy{instance: g.Problem.Instance}
+	greedySolver := Greedy{Instance: g.Problem.Instance}
 	startNode := rand.Intn(len(g.Problem.Instance.NodesMatrix)-1) + 1 // Random node from 1 to n-1
-	greedyRoute, _ := greedySolver.Execute(startNode)
-
-	// Extract node IDs WITHOUT depot
-	greedyNodeIDs := extractNodeIDsWithoutDepot(greedyRoute)
+	greedySolution := greedySolver.Run(startNode)
+	fmt.Println("[INITIAL POPULATION] Greedy solution route:", greedySolution.Route)
 
 	population[0] = model.Solution{
-		Route: model.Route{NodeIDs: greedyNodeIDs},
-		Cost:  calculator.CalculateWithGreedy(g.Problem.Instance, model.Route{NodeIDs: greedyNodeIDs}),
+		Route: greedySolution.Route,
+		Cost:  greedySolution.Cost,
 	}
 
 	// Add random solutions
@@ -55,7 +56,7 @@ func (g Genetic) initializePopulation() []model.Solution {
 		randomRoute := g.generateRandomRoute()
 		population[i] = model.Solution{
 			Route: randomRoute,
-			Cost:  calculator.CalculateWithGreedy(g.Problem.Instance, randomRoute),
+			Cost:  calculator.CalculateCost(g.Problem.Instance, randomRoute),
 		}
 	}
 
@@ -74,7 +75,7 @@ func (g Genetic) evolvePopulation(population []model.Solution) []model.Solution 
 	// Step 1: Elitism - retain the best individuals
 	nextGeneration = append(nextGeneration, population[:g.Problem.ElitismCount]...)
 
-	// Step 2: Selection and mutation
+	// Step 2: Selection, crossover, and mutation
 	for len(nextGeneration) < g.Problem.PopulationSize {
 		parent1 := g.selectParent(population)
 		parent2 := g.selectParent(population)
@@ -92,7 +93,7 @@ func (g Genetic) evolvePopulation(population []model.Solution) []model.Solution 
 		}
 
 		calculator := model.RouteCalculator{}
-		childCost := calculator.CalculateWithGreedy(g.Problem.Instance, child)
+		childCost := calculator.CalculateCost(g.Problem.Instance, child)
 		nextGeneration = append(nextGeneration, model.Solution{Route: child, Cost: childCost})
 	}
 
@@ -129,21 +130,24 @@ func (g Genetic) selectParent(population []model.Solution) model.Solution {
 
 // mutate performs swap mutation on a route.
 func (g Genetic) mutate(route model.Route) model.Route {
+	fmt.Println("[MUTATE] Before mutation:", route)
 	size := len(route.NodeIDs)
 	if size < 2 {
-		return route // nothing to swap
+		return route
 	}
 	i := rand.Intn(size)
 	j := rand.Intn(size)
 	route.NodeIDs[i], route.NodeIDs[j] = route.NodeIDs[j], route.NodeIDs[i]
+	fmt.Println("[MUTATE] After mutation:", route)
 	return route
 }
 
 // crossoverOX performs the Order Crossover (OX) between two parent routes.
 func (g Genetic) crossoverOX(parent1, parent2 model.Route) model.Route {
+	fmt.Println("[CROSSOVER] Parent 1:", parent1)
+	fmt.Println("[CROSSOVER] Parent 2:", parent2)
 	size := len(parent1.NodeIDs)
 
-	// Safety check: if route is too small, just return parent1
 	if size <= 1 {
 		return parent1
 	}
@@ -153,7 +157,7 @@ func (g Genetic) crossoverOX(parent1, parent2 model.Route) model.Route {
 		child[i] = -1
 	}
 
-	// Step 1: Choose two random crossover points
+	// Choose two random crossover points
 	start := rand.Intn(size)
 	end := rand.Intn(size)
 	if start > end {
@@ -166,14 +170,14 @@ func (g Genetic) crossoverOX(parent1, parent2 model.Route) model.Route {
 		}
 	}
 
-	// Step 2: Copy the slice from Parent 1
+	// Copy the slice from Parent 1
 	used := make(map[int]bool)
 	for i := start; i <= end; i++ {
 		child[i] = parent1.NodeIDs[i]
 		used[parent1.NodeIDs[i]] = true
 	}
 
-	// Step 3: Fill remaining slots from Parent 2 in order
+	// Fill remaining slots from Parent 2 in order
 	childIndex := (end + 1) % size
 	for _, gene := range parent2.NodeIDs {
 		if !used[gene] {
@@ -182,17 +186,7 @@ func (g Genetic) crossoverOX(parent1, parent2 model.Route) model.Route {
 			childIndex = (childIndex + 1) % size
 		}
 	}
+	fmt.Println("[CROSSOVER] Child:", child)
 
 	return model.Route{NodeIDs: child}
-}
-
-// extractNodeIDsWithoutDepot converts a slice of Nodes to a slice of their IDs, excluding depot (ID 0).
-func extractNodeIDsWithoutDepot(nodes []model.Node) []int {
-	nodeIDs := make([]int, 0, len(nodes))
-	for _, node := range nodes {
-		if node.ID != 0 { // Exclude depot
-			nodeIDs = append(nodeIDs, node.ID)
-		}
-	}
-	return nodeIDs
 }

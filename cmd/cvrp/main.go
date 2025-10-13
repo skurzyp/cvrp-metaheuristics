@@ -19,6 +19,8 @@ func main() {
 	mutation := flag.Float64("mutation", 0.1, "Mutation rate (0-1)")
 	crossover := flag.Float64("crossover", 0.7, "Crossover rate (0-1)")
 	tournament := flag.Int("tournament", 5, "Tournament size for parent selection")
+	algorithm := flag.String("algorithm", "ga", "Algotihm to use: 'ga' for Genetic Algorithm (default), 'sa' for Simulated Annealing (not implemented), greedy for Greedy Algorithm")
+	starting := flag.Int("start", 1, "Starting node ID for Greedy Algorithm (default 1)")
 
 	flag.Parse()
 
@@ -29,21 +31,33 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Step 3: Define GA problem
-	problem := model.Problem{
-		Instance:       instance,
-		ElitismCount:   *elitism,
-		MaxGenerations: *maxGen,
-		MutationRate:   float32(*mutation),
-		CrossoverRate:  float32(*crossover),
-		PopulationSize: *popSize,
-		TournamentSize: *tournament,
+	switch *algorithm {
+	case "ga":
+		// Step 3: Define GA problem
+		problem := model.Problem{
+			Instance:       instance,
+			ElitismCount:   *elitism,
+			MaxGenerations: *maxGen,
+			MutationRate:   float32(*mutation),
+			CrossoverRate:  float32(*crossover),
+			PopulationSize: *popSize,
+			TournamentSize: *tournament,
+		}
+
+		// Step 4: Run GA
+		ga := solver.Genetic{Problem: problem}
+		solution := ga.Run()
+
+		// Step 5: Print solution
+		fmt.Println(solution.String())
+	case "greedy":
+		greedy := solver.Greedy{Instance: instance}
+		if *starting < 1 || *starting >= len(instance.NodesMatrix) {
+			fmt.Printf("Starting node ID must be between 1 and %d\n", len(instance.NodesMatrix)-1)
+			os.Exit(1)
+		}
+		solution := greedy.Run(*starting)
+		fmt.Println(solution.String())
 	}
 
-	// Step 4: Run GA
-	ga := solver.Genetic{Problem: problem}
-	solution := ga.Run()
-
-	// Step 5: Print solution
-	fmt.Println(solution.String())
 }
