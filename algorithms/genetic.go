@@ -2,10 +2,12 @@
 package algorithms
 
 import (
+	"fmt"
 	"math/rand"
 	"sort"
 	"time"
 
+	"pwr.lab0/io"
 	"pwr.lab0/model"
 )
 
@@ -18,9 +20,68 @@ func (g Genetic) Run() model.FinalSolution {
 	// Step 1: Initialize population
 	population := g.initializePopulation()
 
+	// Generate log file path
+	logPath := "results/ga_progress_" +
+		g.Problem.Instance.Name +
+		"_pop%d" +
+		"_gen%d" +
+		"_px%.3f" +
+		"_pm%.3f" +
+		"_elit%d" +
+		"_tour%d.csv"
+	logPath = fmt.Sprintf(logPath,
+		g.Problem.PopulationSize,
+		g.Problem.MaxGenerations,
+		g.Problem.CrossoverRate,
+		g.Problem.MutationRate,
+		g.Problem.ElitismCount,
+		g.Problem.TournamentSize,
+	)
+
+	// Get costs for statistics
+	costs := make([]float32, len(population))
+	for i, sol := range population {
+		costs[i] = sol.Cost
+	}
+	best, worst, avg, std := io.CalculateStats(costs)
+
+	// Log initial generation
+	log := io.GenerationLog{
+		Instance:   g.Problem.Instance.Name,
+		Algorithm:  "ga",
+		Run:        1, // This should be passed as parameter if needed
+		Best:       best,
+		Worst:      worst,
+		Avg:        avg,
+		Std:        std,
+		PopSize:    g.Problem.PopulationSize,
+		Generation: 0,
+		Px:         g.Problem.CrossoverRate,
+		Pm:         g.Problem.MutationRate,
+		Tournament: g.Problem.TournamentSize,
+		Elitism:    g.Problem.ElitismCount,
+		Cooling:    0,
+		InnerLoop:  0,
+	}
+	io.LogGeneration(log, logPath)
+
 	// Step 2: Evolve population for max generations
 	for generation := 0; generation < g.Problem.MaxGenerations; generation++ {
 		population = g.evolvePopulation(population)
+
+		// Update statistics for logging
+		costs = make([]float32, len(population))
+		for i, sol := range population {
+			costs[i] = sol.Cost
+		}
+		best, worst, avg, std = io.CalculateStats(costs)
+
+		log.Generation = generation + 1
+		log.Best = best
+		log.Worst = worst
+		log.Avg = avg
+		log.Std = std
+		io.LogGeneration(log, logPath)
 	}
 
 	// Return the best solution
