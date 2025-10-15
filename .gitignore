@@ -32,3 +32,11 @@
 # OS-specific
 .DS_Store
 Thumbs.db
+
+# Python environments
+.venv/
+
+# generated charts and filed
+*.csv
+*.png
+*.pdf
