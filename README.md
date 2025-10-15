@@ -55,13 +55,13 @@ The benchmark tool allows you to compare different algorithms and measure their 
 # Run with default parameters
 go run ./cmd/benchmark/benchmark.go \
   -file ./data/a-n32-k5.vrp \
-  -out ./results/summary.csv \
+  -out ./results/algorithm/summary.csv \
   -runs 10
 
 # Run with custom GA and SA parameters
 go run ./cmd/benchmark/benchmark.go \
   -file ./data/a-n32-k5.vrp \
-  -out ./results/custom-params.csv \
+  -out ./results/benchmark/custom-params.csv \
   -runs 20 \
   -randomRuns 5000 \
   -pop 300 \
@@ -78,17 +78,17 @@ go run ./cmd/benchmark/benchmark.go \
 | ------------- | ------- | ---------------------- | -------------------------------------------------- |
 | `-file`       | string  | `./data/toy.vrp` | Path to the VRP instance file                      |
 | `-algorithm`  | string  | `ga`                  | Algorithm to use (`ga`, `sa`, or `greedy`)         |
-| `-pop`        | int     | 100                   | Population size (GA only)                          |
-| `-gen`        | int     | 100                   | Maximum number of generations (GA only)            |
-| `-elitism`    | int     | 5                     | Number of elite solutions retained (GA only)       |
-| `-mutation`   | float64 | 0.1                   | Mutation rate (0-1, GA only)                      |
-| `-crossover`  | float64 | 0.7                   | Crossover rate (0-1, GA only)                     |
-| `-tournament` | int     | 5                     | Tournament size for parent selection (GA only)     |
+| `-pop`        | int     | 200                   | Population size (GA only)                          |
+| `-gen`        | int     | 10000                 | Maximum number of generations (GA only)            |
+| `-elitism`    | int     | 10                    | Number of elite solutions retained (GA only)       |
+| `-mutation`   | float64 | 0.05                  | Mutation rate (0-1, GA only)                      |
+| `-crossover`  | float64 | 0.9                   | Crossover rate (0-1, GA only)                     |
+| `-tournament` | int     | 10                    | Tournament size for parent selection (GA only)     |
 | `-start`      | int     | 0                     | Starting node ID (Greedy only)                     |
-| `-temp`       | float64 | 1000.0                | Initial temperature (SA only)                      |
+| `-temp`       | float64 | 2000.0                | Initial temperature (SA only)                      |
 | `-minTemp`    | float64 | 0.001                 | Minimum temperature (SA only)                      |
-| `-cooling`    | float64 | 0.995                 | Cooling rate (0-1, SA only)                       |
-| `-innerLoop`  | int     | 100                   | Iterations per temperature step (SA only)          |
+| `-cooling`    | float64 | 0.999               | Cooling rate (0-1, SA only)                       |
+| `-innerLoop`  | int     | 2000                  | Iterations per temperature step (SA only)          |
 
 ### Benchmark CLI Parameters
 | Flag          | Type    | Default                | Description                                        |
@@ -98,15 +98,15 @@ go run ./cmd/benchmark/benchmark.go \
 | `-runs`       | int     | 10                     | Number of repetitions for GA and SA                |
 | `-randomRuns` | int     | 10000                 | Number of random solution generations              |
 | `-pop`        | int     | 200                   | Population size (GA only)                          |
-| `-gen`        | int     | 5000                  | Maximum generations (GA only)                      |
+| `-gen`        | int     | 10000                 | Maximum generations (GA only)                      |
 | `-elitism`    | int     | 10                    | Number of elite solutions retained (GA only)       |
 | `-mutation`   | float64 | 0.05                  | Mutation rate (0-1, GA only)                      |
 | `-crossover`  | float64 | 0.90                  | Crossover rate (0-1, GA only)                     |
 | `-tournament` | int     | 10                    | Tournament size for parent selection (GA only)     |
-| `-temp`       | float64 | 1000.0                | Initial temperature (SA only)                      |
+| `-temp`       | float64 | 2000.0                | Initial temperature (SA only)                      |
 | `-minTemp`    | float64 | 0.001                 | Minimum temperature (SA only)                      |
-| `-cooling`    | float64 | 0.9995                | Cooling rate (0-1, SA only)                       |
-| `-innerLoop`  | int     | 400                   | Iterations per temperature step (SA only)          |
+| `-cooling`    | float64 | 0.999                | Cooling rate (0-1, SA only)                       |
+| `-innerLoop`  | int     | 2000                  | Iterations per temperature step (SA only)          |
 
 ## TODO
 #### Major

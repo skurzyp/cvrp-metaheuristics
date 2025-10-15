@@ -32,3 +32,6 @@
 # OS-specific
 .DS_Store
 Thumbs.db
+
+# Python environments
+.venv/
