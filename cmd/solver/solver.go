@@ -12,7 +12,7 @@ import (
 
 func main() {
 	// Step 1: Define CLI flags
-	filePath := flag.String("file", "./data/mock_data.txt", "Path to the VRP instance file")
+	filePath := flag.String("file", "./data/toy.vrp", "Path to the VRP instance file")
 	popSize := flag.Int("pop", 100, "Population size (GA only)")
 	maxGen := flag.Int("gen", 100, "Maximum generations (GA only)")
 	elitism := flag.Int("elitism", 5, "Number of elite solutions retained each generation (GA only)")

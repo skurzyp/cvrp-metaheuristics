@@ -13,9 +13,26 @@ import (
 )
 
 func main() {
-	filePath := flag.String("file", "./data/mock_data.txt", "Path to the VRP instance file")
+	// Basic benchmark parameters
+	filePath := flag.String("file", "./data/toy.vrp", "Path to the VRP instance file")
 	output := flag.String("out", "./results/summary.csv", "Path to CSV output file")
 	runs := flag.Int("runs", 10, "Number of repetitions for metaheuristic algorithms - GA and SA")
+	randomRuns := flag.Int("randomRuns", 10000, "Number of random solution generations")
+
+	// Genetic Algorithm parameters
+	popSize := flag.Int("pop", 200, "Population size (GA only)")
+	maxGen := flag.Int("gen", 5000, "Maximum generations (GA only)")
+	elitism := flag.Int("elitism", 10, "Number of elite solutions retained (GA only)")
+	mutation := flag.Float64("mutation", 0.05, "Mutation rate (0-1, GA only)")
+	crossover := flag.Float64("crossover", 0.90, "Crossover rate (0-1, GA only)")
+	tournament := flag.Int("tournament", 10, "Tournament size for parent selection (GA only)")
+
+	// Simulated Annealing parameters
+	initialTemp := flag.Float64("temp", 1000.0, "Initial temperature (SA only)")
+	minTemp := flag.Float64("minTemp", 0.001, "Minimum temperature (SA only)")
+	coolingRate := flag.Float64("cooling", 0.9995, "Cooling rate (0-1, SA only)")
+	innerLoop := flag.Int("innerLoop", 400, "Iterations per temperature step (SA only)")
+
 	flag.Parse()
 
 	instance, err := io.ParseInstance(*filePath)
@@ -26,17 +43,17 @@ func main() {
 
 	problem := model.Problem{
 		Instance:       instance,
-		PopulationSize: 200,
-		MaxGenerations: 5000,
-		MutationRate:   0.05,
-		CrossoverRate:  0.90,
-		TournamentSize: 10,
-		ElitismCount:   10,
+		PopulationSize: *popSize,
+		MaxGenerations: *maxGen,
+		MutationRate:   float32(*mutation),
+		CrossoverRate:  float32(*crossover),
+		TournamentSize: *tournament,
+		ElitismCount:   *elitism,
 
-		InitialTemperature: 1000,
-		MinimumTemperature: 0.001,
-		CoolingRate:        0.9995,
-		InnerLoop:          400,
+		InitialTemperature: *initialTemp,
+		MinimumTemperature: *minTemp,
+		CoolingRate:        *coolingRate,
+		InnerLoop:          *innerLoop,
 	}
 
 	fmt.Println("🔍 Running benchmark suite (concurrent)...")
@@ -59,7 +76,7 @@ func main() {
 	go run("ga", *runs)
 	go run("sa", *runs)
 	go run("greedy", len(instance.NodesMatrix)-1) // one run per possible starting node
-	go run("random", 10000)                       // 10,000 random runs
+	go run("random", *randomRuns)                 // configurable number of random runs
 
 	wg.Wait()
 	close(resultsChan)
